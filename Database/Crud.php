@@ -1,32 +1,26 @@
 <?php
-//use DataBaseConnection;
-require_once 'DataBaseConnection.php';
-class Crud extends DataBaseConnection
-{
+require_once 'Database\Database.php';
+require_once 'ProductModels\DVD.php';
+require_once 'ProductModels\Book.php';
+require_once 'ProductModels\Furniture.php';
 
-    
-protected $sku = 784554877;
-protected $namee = "test";
-protected $price = 33.3;
+$host = "localhost";
+$user = "root";
+$password = "";
+$dbname = "productsys";
 
-public function saveProduct()
-{
-    try{
-        $this->conn->beginTransaction();
-        $sql = "INSERT INTO product (sku, namee, price)
-         VALUES ($this->sku, '$this->namee', $this->price)";
-        $this->conn->exec($sql);
-        echo "vlaue inserted in DB";
-        $this->conn->commit();
-        return true;
+// Create a new instance of the Database class
+$db = new Database($host, $user, $password, $dbname);
 
-    }catch (PDOException $e){
-        echo $sql . "<br>" . $e->getMessage();
-        return false;
-    }
-}
+// Create and save DVD
+$dvd = new DVD("DVD001", "Inception", 19.99, 700);
+$dvd->save($db->getConnection());
 
+// Create and save Book
+$book = new Book("BOOK001", "The Great Gatsby", 10.99, 1.2);
+$book->save($db->getConnection());
 
-}
-
+// Create and save Furniture
+$furniture = new Furniture("FURN001", "Sofa", 299.99, "200x80x100");
+$furniture->save($db->getConnection());
 ?>
