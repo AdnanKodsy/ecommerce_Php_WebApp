@@ -8,7 +8,6 @@ class Book extends AbstractProduct {
         $this->setWeight($weight);
     }
 
-    // Getter and Setter for weight
     public function getWeight() {
         return $this->weight;
     }
@@ -28,7 +27,6 @@ class Book extends AbstractProduct {
         $stmt->execute();
         $this->id = $conn->insert_id;
 
-        // Save to 'books' table
         $stmt = $conn->prepare("INSERT INTO books (product_id, weight) VALUES (?, ?)");
         $stmt->bind_param("id", $this->id, $this->weight);
         $stmt->execute();

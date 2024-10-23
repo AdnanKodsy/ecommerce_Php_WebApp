@@ -9,7 +9,6 @@ class DVD extends AbstractProduct {
         $this->size = $size;
     }
 
-    // Getter and Setter for size
     public function getSize() {
         return $this->size;
     }
@@ -18,7 +17,6 @@ class DVD extends AbstractProduct {
         $this->size = $size;
     }
 
-    // Save method to save DVD data in both 'products' and 'dvds' tables
     public function save() {
         $conn = self::getConnection();
         $stmt = $conn->prepare("INSERT INTO products (sku, `name`, price, product_type) VALUES (?, ?, ?, 'DVD')");
@@ -29,7 +27,6 @@ class DVD extends AbstractProduct {
         $stmt->execute();
         $this->id = $conn->insert_id;
 
-        // Save to 'dvds' table
         $stmt = $conn->prepare("INSERT INTO dvds (product_id, size) VALUES (?, ?)");
         $stmt->bind_param("id", $this->id, $this->size);
         $stmt->execute();

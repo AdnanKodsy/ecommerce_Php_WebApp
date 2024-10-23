@@ -11,7 +11,6 @@ abstract class AbstractProduct extends Database {
         $this->setPrice($price);
     }
 
-    // Getters
     public function getId() {
         return $this->id;
     }
@@ -28,7 +27,6 @@ abstract class AbstractProduct extends Database {
         return $this->price;
     }
 
-    // Setters
     public function setSku($sku) {
         $this->sku = $sku;
     }
@@ -41,6 +39,5 @@ abstract class AbstractProduct extends Database {
         $this->price = $price;
     }
 
-    // Abstract save method
     abstract public function save();
 }

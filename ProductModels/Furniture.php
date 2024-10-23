@@ -8,7 +8,6 @@ class Furniture extends AbstractProduct {
         $this->setDimensions($dimensions);
     }
 
-    // Getter and Setter for dimensions
     public function getDimensions() {
         return $this->dimensions;
     }
@@ -27,7 +26,6 @@ class Furniture extends AbstractProduct {
         $stmt->execute();
         $this->id = $conn->insert_id;
 
-        // Save to 'furniture' table
         $stmt = $conn->prepare("INSERT INTO furniture (product_id, dimensions) VALUES (?, ?)");
         $stmt->bind_param("is", $this->id, $this->dimensions);
         $stmt->execute();

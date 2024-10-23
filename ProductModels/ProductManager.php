@@ -1,7 +1,6 @@
 <?php
 
 class ProductManager extends Database {
-    // Constructor to initialize the Database connection by extending the parent constructor
     public function __construct() {
     }
 
