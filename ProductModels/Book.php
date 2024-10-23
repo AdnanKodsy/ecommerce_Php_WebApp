@@ -1,6 +1,6 @@
 <?php 
-require_once 'ProductModels\Product.php';
-class Book extends Product {
+require_once 'ProductModels\AbstractProduct.php';
+class Book extends AbstractProduct {
     private $weight;
 
     public function __construct($sku, $name, $price, $weight) {
@@ -17,9 +17,9 @@ class Book extends Product {
         $this->weight = $weight;
     }
 
-    // Save method to save Book data in both 'products' and 'books' tables
-    public function save($conn) {
-        // Save to 'products' table
+
+    public function save() {
+        $conn = self::getConnection();
         $stmt = $conn->prepare("INSERT INTO products (sku, `name`, price, product_type) VALUES (?, ?, ?, 'Book')");
         $sku = $this->getSku();
         $name = $this->getName();
@@ -32,7 +32,7 @@ class Book extends Product {
         $stmt = $conn->prepare("INSERT INTO books (product_id, weight) VALUES (?, ?)");
         $stmt->bind_param("id", $this->id, $this->weight);
         $stmt->execute();
+        $stmt->close();
     }
 }
 
-?>

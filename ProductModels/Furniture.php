@@ -1,6 +1,6 @@
 <?php
-require_once 'ProductModels\Product.php';
-class Furniture extends Product {
+require_once 'ProductModels\AbstractProduct.php';
+class Furniture extends AbstractProduct {
     private $dimensions;
 
     public function __construct($sku, $name, $price, $dimensions) {
@@ -17,9 +17,8 @@ class Furniture extends Product {
         $this->dimensions = $dimensions;
     }
 
-    // Save method to save Furniture data in both 'products' and 'furniture' tables
-    public function save($conn) {
-        // Save to 'products' table
+    public function save() {
+        $conn = self::getConnection();
         $stmt = $conn->prepare("INSERT INTO products (sku, `name`, price, product_type) VALUES (?, ?, ?, 'Furniture')");
         $sku = $this->getSku();
         $name = $this->getName();
@@ -32,6 +31,6 @@ class Furniture extends Product {
         $stmt = $conn->prepare("INSERT INTO furniture (product_id, dimensions) VALUES (?, ?)");
         $stmt->bind_param("is", $this->id, $this->dimensions);
         $stmt->execute();
+        $stmt->close();
     }
 }
-?>

@@ -1,12 +1,12 @@
 <?php
 
-require 'ProductModels\Product.php';
-class DVD extends Product {
+require 'ProductModels\AbstractProduct.php';
+class DVD extends AbstractProduct {
     private $size;
 
     public function __construct($sku, $name, $price, $size) {
         parent::__construct($sku, $name, $price);
-        $this->setSize($size);
+        $this->size = $size;
     }
 
     // Getter and Setter for size
@@ -19,8 +19,8 @@ class DVD extends Product {
     }
 
     // Save method to save DVD data in both 'products' and 'dvds' tables
-    public function save($conn) {
-        // Save to 'products' table
+    public function save() {
+        $conn = self::getConnection();
         $stmt = $conn->prepare("INSERT INTO products (sku, `name`, price, product_type) VALUES (?, ?, ?, 'DVD')");
         $sku = $this->getSku();
         $name = $this->getName();
@@ -33,7 +33,7 @@ class DVD extends Product {
         $stmt = $conn->prepare("INSERT INTO dvds (product_id, size) VALUES (?, ?)");
         $stmt->bind_param("id", $this->id, $this->size);
         $stmt->execute();
+        $stmt->close();
     }
 }
 
-?>
