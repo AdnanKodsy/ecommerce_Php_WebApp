@@ -14,45 +14,47 @@ class ProductManager extends Database {
             LEFT JOIN furniture f ON p.id = f.product_id
             ORDER BY p.id ASC;
         ";
-
+    
         $result = $this->query($query);
 
+        $productClassMap = [
+            'DVD' => ['class' => DVD::class, 'params' => ['sku', 'name', 'price', 'dvd_size'], 'detailLabel' => 'Size'],
+            'Book' => ['class' => Book::class, 'params' => ['sku', 'name', 'price', 'book_weight'], 'detailLabel' => 'Weight'],
+            'Furniture' => ['class' => Furniture::class, 'params' => ['sku', 'name', 'price', 'furniture_dimensions'], 'detailLabel' => 'Dimensions'],
+        ];
+    
         while ($row = $result->fetch_assoc()) {
             $product = null;
-            switch ($row['product_type']) {
-                case 'DVD':
-                    $product = new DVD($row['sku'], $row['name'], $row['price'], $row['dvd_size']);
-                    break;
-                case 'Book':
-                    $product = new Book($row['sku'], $row['name'], $row['price'], $row['book_weight']);
-                    break;
-                case 'Furniture':
-                    $product = new Furniture($row['sku'], $row['name'], $row['price'], $row['furniture_dimensions']);
-                    break;
-            }
-
-            if ($product) {
-                echo "ID: " . $row['id'] . "<br>";
-                echo "SKU: " . $product->getSku() . "<br>";
-                echo "Name: " . $product->getName() . "<br>";
-                echo "Price: $" . $product->getPrice() . "<br>";
-                echo "Type: " . $row['product_type'] . "<br>";
-
-                switch ($row['product_type']) {
-                    case 'DVD':
-                        echo "Size: " . $product->getSize() . " MB<br>";
-                        break;
-                    case 'Book':
-                        echo "Weight: " . $product->getWeight() . " Kg<br>";
-                        break;
-                    case 'Furniture':
-                        echo "Dimensions: " . $product->getDimensions() . "<br>";
-                        break;
+            $productType = $row['product_type'];
+    
+            if (array_key_exists($productType, $productClassMap)) {
+                $productClassInfo = $productClassMap[$productType];
+                $productClass = $productClassInfo['class'];
+    
+                $params = array_map(function($param) use ($row) {
+                    return $row[$param];
+                }, $productClassInfo['params']);
+    
+                $product = new $productClass(...$params);
+    
+                $details = [
+                    'ID' => $row['id'],
+                    'SKU' => $product->getSku(),
+                    'Name' => $product->getName(),
+                    'Price' => "$" . number_format($product->getPrice(), 2),
+                    'Type' => $productType,
+                    $productClassInfo['detailLabel'] => $row[$productClassInfo['params'][3]],
+                ];
+    
+                foreach ($details as $label => $value) {
+                    echo "$label: $value<br>";
                 }
                 echo "<br>";
             }
         }
     }
+    
+    
 
     public function deleteProductsByIds($ids) {
         if (empty($ids)) {

@@ -22,15 +22,15 @@ $book->save();
 
 
 $furniture = new Furniture("FURN001", "Sofa", 299.99, "200x80x100");
-$furniture->save();*/
-
+$furniture->save();
+*/
 $productManager = new ProductManager();
 
 // Display all products
-//$productManager->displayAll();
+$productManager->displayAll();
 
 // Delete products by IDs
-$productManager->deleteProductsByIds([22, 24]);
+//$productManager->deleteProductsByIds([22, 24]);
 
 // Close the database connection when done
 Database::close();
