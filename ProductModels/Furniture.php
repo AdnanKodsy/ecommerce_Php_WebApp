@@ -3,9 +3,7 @@ require_once 'ProductModels\AbstractProduct.php';
 class Furniture extends AbstractProduct {
     private $dimensions;
 
-    public function __construct($sku, $name, $price, $dimensions) {
-        parent::__construct($sku, $name, $price);
-        $this->setDimensions($dimensions);
+    public function __construct() {
     }
 
     public function getDimensions() {

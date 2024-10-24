@@ -3,9 +3,7 @@ require_once 'ProductModels\AbstractProduct.php';
 class Book extends AbstractProduct {
     private $weight;
 
-    public function __construct($sku, $name, $price, $weight) {
-        parent::__construct($sku, $name, $price);
-        $this->setWeight($weight);
+    public function __construct() {
     }
 
     public function getWeight() {

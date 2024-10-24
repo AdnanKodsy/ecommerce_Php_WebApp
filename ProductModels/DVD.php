@@ -4,9 +4,7 @@ require 'ProductModels\AbstractProduct.php';
 class DVD extends AbstractProduct {
     private $size;
 
-    public function __construct($sku, $name, $price, $size) {
-        parent::__construct($sku, $name, $price);
-        $this->size = $size;
+    public function __construct() {
     }
 
     public function getSize() {
