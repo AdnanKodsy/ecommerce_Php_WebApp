@@ -23,6 +23,7 @@ class ProductManager extends Database {
             'Furniture' => ['class' => Furniture::class, 'params' => ['sku', 'name', 'price', 'furniture_dimensions'], 'detailLabel' => 'Dimensions'],
         ];
     
+        $products = [];
         while ($row = $result->fetch_assoc()) {
             $product = null;
             $productType = $row['product_type'];
@@ -37,7 +38,7 @@ class ProductManager extends Database {
     
                 $product = new $productClass(...$params);
     
-                $details = [
+                $products[] = [
                     'ID' => $row['id'],
                     'SKU' => $product->getSku(),
                     'Name' => $product->getName(),
@@ -45,13 +46,9 @@ class ProductManager extends Database {
                     'Type' => $productType,
                     $productClassInfo['detailLabel'] => $row[$productClassInfo['params'][3]],
                 ];
-    
-                foreach ($details as $label => $value) {
-                    echo "$label: $value<br>";
-                }
-                echo "<br>";
             }
         }
+        return $products;
     }
     
     
