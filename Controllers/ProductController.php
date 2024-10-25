@@ -1,5 +1,5 @@
 <?php
-require_once 'ProductModels\ProductManager.php'; // Your existing ProductManager class
+require_once 'ProductModels\ProductManager.php';
 
 class ProductController {
     private $productManager;
@@ -17,38 +17,22 @@ class ProductController {
             echo json_encode(['error' => $e->getMessage()]);
         }
     }
-    public function saveProduct() {
-        $input = json_decode(file_get_contents('php://input'), true);
 
-        $productType = $input['product_type'];
-        $productClassMap = [
-            'DVD' => ['class' => DVD::class, 'params' => ['sku', 'name', 'price', 'size']],
-            'Book' => ['class' => Book::class, 'params' => ['sku', 'name', 'price', 'weight']],
-            'Furniture' => ['class' => Furniture::class, 'params' => ['sku', 'name', 'price', 'dimensions']],
-        ];
+    public function createProduct() {
+        header('Content-Type: application/json');
 
-        if (!array_key_exists($productType, $productClassMap)) {
-            echo json_encode(['message' => 'Invalid product type']);
-            return;
-        }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-        // Create product instance
-        $productClassInfo = $productClassMap[$productType];
-        $product = new $productClassInfo['class']();
+            $jsonData = file_get_contents('php://input');
 
-        // Use setters to assign values dynamically
-        foreach ($productClassInfo['params'] as $param) {
-            if (isset($input[$param])) {
-                $setterMethod = 'set' . ucfirst($param);
-                if (method_exists($product, $setterMethod)) {
-                    $product->$setterMethod($input[$param]);
-                }
+            try {
+                $response = $this->productManager->createAndSaveProduct($jsonData);
+                echo json_encode($response);
+            } catch (Exception $e) {
+                echo json_encode(['error' => $e->getMessage()]);
             }
+        } else {
+            echo json_encode(["message" => "Invalid request method. Only POST is allowed."]);
         }
-
-        // Call the saveProduct method to save it in the database
-        $this->productManager->saveProduct($product);
-        echo json_encode(['message' => 'Product saved successfully']);
     }
 }
-

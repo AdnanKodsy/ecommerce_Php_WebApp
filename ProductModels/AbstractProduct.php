@@ -40,4 +40,11 @@ abstract class AbstractProduct extends Database {
     }
 
     abstract public function save();
+
+    public function setProperty($propertyName, $value) {
+        $setterMethod = 'set' . ucfirst($propertyName);
+        if (method_exists($this, $setterMethod)) {
+            $this->$setterMethod($value);
+        }
+    }
 }

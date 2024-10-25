@@ -6,25 +6,20 @@ require_once 'ProductModels\Furniture.php';
 require_once 'ProductModels\productManager.php';
 require_once 'Controllers\ProductController.php';
 
+
 Database::init('localhost', 'root', '', 'productsys');
-/*
-$method = $_SERVER['REQUEST_METHOD'];
-$uri = $_SERVER['REQUEST_URI'];
+$productController = new ProductController();
 
-if ($method == 'GET' && $uri === '/scandiweb/products') {
-    $controller = new ProductController();
-    $controller->getAllProducts();
-} else {
-    header("HTTP/1.1 404 Not Found");
-    echo json_encode(['message' => 'Endpoint not found']);
-}
-*/
-$controller = new ProductController();
+$requestUri = $_SERVER['REQUEST_URI'];
+$requestMethod = $_SERVER['REQUEST_METHOD'];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_SERVER['REQUEST_URI'] === '/scandiweb/products/save') {
-    $controller->saveProduct();
+if ($requestUri === '/scandiweb/products' && $requestMethod === 'GET') {
+
+    $productController->getAllProducts();
+} elseif ($requestUri === '/scandiweb/products/save' && $requestMethod === 'POST') {
+
+    $productController->createProduct();
 } else {
-    echo json_encode(['message' => 'Endpoint not found']);
+    header("HTTP/1.0 404 Not Found");
+    echo json_encode(["message" => "Not Found"]);
 }
- 
-Database::close();

@@ -3,47 +3,58 @@
 class ProductManager extends Database {
     public function __construct() {
     }
-
     private $productClassMap = [
-        'DVD' => ['class' => DVD::class, 'params' => ['sku', 'name', 'price', 'dvd_size'], 'detailLabel' => 'Size', 'column' => 'Size', 'table' => 'dvds'],
-        'Book' => ['class' => Book::class, 'params' => ['sku', 'name', 'price', 'book_weight'], 'detailLabel' => 'Weight', 'column' => 'Weight', 'table' => 'books'],
-        'Furniture' => ['class' => Furniture::class, 'params' => ['sku', 'name', 'price', 'furniture_dimensions'], 'detailLabel' => 'Dimensions', 'column' => 'Dimensions', 'table' => 'furniture'],
+        'DVD' => DVD::class,
+        'Book' => Book::class,
+        'Furniture' => Furniture::class,
     ];
-    
 
-    public function saveProduct($product) {
-        $conn = self::getConnection();
-        $type = get_class($product);
+    private function skuExists($sku) {
+        $query = "SELECT COUNT(*) AS count FROM products WHERE sku = ?";
+        $conn = self::getConnection(); // Assuming you have a method to get DB connection
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("s", $sku);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
         
-        if (array_key_exists($type, $this->productClassMap)) {
-            $productClassInfo = $this->productClassMap[$type];
-            $table = $productClassInfo['table'];
-            $column = $productClassInfo['column'];
-    
-            $sku = $product->getSku();
-            $name = $product->getName();
-            $price = $product->getPrice();
+        return $row['count'] > 0; 
+    }
 
-            $query = "INSERT INTO products (sku, `name`, price, product_type) VALUES (?, ?, ?, ?)";
-            $stmt = $conn->prepare($query);
-            $stmt->bind_param('ssds', 
-                $sku,
-                $name,
-                $price, 
-                $type
-            );
-            $stmt->execute();
-            $productId = $conn->insert_id;
-    
-            $detail = $product->{"get" . ucfirst($column)}();
-            $query = "INSERT INTO $table (product_id, $column) VALUES (?, ?)";
-            $stmt = $conn->prepare($query);
-            $stmt->bind_param('is', $productId, $detail);
-            $stmt->execute();
-            $stmt->close();
+    public function createAndSaveProduct($jsonData) {
+        $data = json_decode($jsonData, true);
+
+        if (!isset($data['product_type']) || !array_key_exists($data['product_type'], $this->productClassMap)) {
+            return ["message" => "Invalid product type."];
         }
+        if ($this->skuExists($data['sku'])) {
+            return ["message" => "SKU already exists."];
+        }
+
+        $productClass = $this->productClassMap[$data['product_type']];
+        $product = new $productClass();
+        $this->setCommonProperties($product, $data);
+        
+
+        foreach ($data as $key => $value) {
+            if (in_array($key, ['sku', 'name', 'price', 'product_type'])) {
+                continue;
+            }
+            $product->setProperty($key, $value);
+        }
+        $product->save();
+        
+        return ["message" => "Product saved successfully."];
+    }
+
+    private function setCommonProperties($product, $data) {
+        $product->setSku($data['sku']);
+        $product->setName($data['name']);
+        $product->setPrice($data['price']);
     }
     
+   
     public function displayAll() {
         $query = "
             SELECT p.id, p.sku, p.name, p.price, p.product_type,
@@ -56,23 +67,41 @@ class ProductManager extends Database {
         ";
     
         $result = $this->query($query);
-    
         $products = [];
+    
+
+        $propertySetters = [
+            'DVD' => 'setSize',
+            'Book' => 'setWeight',
+            'Furniture' => 'setDimensions',
+        ];
+    
+        $propertyColumns = [
+            'DVD' => 'dvd_size',
+            'Book' => 'book_weight',
+            'Furniture' => 'furniture_dimensions',
+        ];
+    
+        $propertyGetters = [
+            'DVD' => 'getSize',
+            'Book' => 'getWeight',
+            'Furniture' => 'getDimensions',
+        ];
+    
         while ($row = $result->fetch_assoc()) {
-            $product = null;
             $productType = $row['product_type'];
     
             if (array_key_exists($productType, $this->productClassMap)) {
-                $productClassInfo = $this->productClassMap[$productType];
-                $productClass = $productClassInfo['class'];
+                $productClass = $this->productClassMap[$productType];
                 $product = new $productClass();
-    
-
+ 
                 $product->setSku($row['sku']);
                 $product->setName($row['name']);
                 $product->setPrice($row['price']);
-                $detailSetter = 'set' . ucfirst($productClassInfo['column']);
-                $product->$detailSetter($row[$productClassInfo['params'][3]]);
+    
+                $setterMethod = $propertySetters[$productType];
+                $columnName = $propertyColumns[$productType];
+                $product->$setterMethod($row[$columnName]);
     
                 $products[] = [
                     'ID' => $row['id'],
@@ -80,7 +109,7 @@ class ProductManager extends Database {
                     'Name' => $product->getName(),
                     'Price' => "$" . number_format($product->getPrice(), 2),
                     'Type' => $productType,
-                    $productClassInfo['detailLabel'] => $product->{'get' . ucfirst($productClassInfo['column'])}(),
+                    $columnName => $product->{$propertyGetters[$productType]}(),
                 ];
             }
         }
