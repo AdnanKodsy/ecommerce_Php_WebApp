@@ -1,20 +1,25 @@
 <?php
 require_once 'ProductModels\AbstractProduct.php';
-class Furniture extends AbstractProduct {
+class Furniture extends AbstractProduct
+{
     private $dimensions;
 
-    public function __construct() {
+    public function __construct()
+    {
     }
 
-    public function getDimensions() {
+    public function getProperty()
+    {
         return $this->dimensions;
     }
+    public function setProperty($dimensions)
+    {
 
-    public function setDimensions($dimensions) {
         $this->dimensions = $dimensions;
     }
 
-    public function save() {
+    public function save()
+    {
         $conn = self::getConnection();
         $stmt = $conn->prepare("INSERT INTO products (sku, `name`, price, product_type) VALUES (?, ?, ?, 'Furniture')");
         $sku = $this->getSku();
@@ -25,7 +30,9 @@ class Furniture extends AbstractProduct {
         $this->id = $conn->insert_id;
 
         $stmt = $conn->prepare("INSERT INTO furniture (product_id, dimensions) VALUES (?, ?)");
-        $stmt->bind_param("is", $this->id, $this->dimensions);
+        $id = $this->id;
+        $property = $this->getProperty();
+        $stmt->bind_param("is", $id, $property);
         $stmt->execute();
         $stmt->close();
     }

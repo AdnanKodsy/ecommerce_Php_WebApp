@@ -1,21 +1,27 @@
-<?php 
+<?php
 require_once 'ProductModels\AbstractProduct.php';
-class Book extends AbstractProduct {
+class Book extends AbstractProduct
+{
     private $weight;
 
-    public function __construct() {
+    public function __construct()
+    {
     }
 
-    public function getWeight() {
+
+    public function getProperty()
+    {
         return $this->weight;
     }
+    public function setProperty($weight)
+    {
 
-    public function setWeight($weight) {
         $this->weight = $weight;
     }
 
 
-    public function save() {
+    public function save()
+    {
         $conn = self::getConnection();
         $stmt = $conn->prepare("INSERT INTO products (sku, `name`, price, product_type) VALUES (?, ?, ?, 'Book')");
         $sku = $this->getSku();
@@ -26,7 +32,9 @@ class Book extends AbstractProduct {
         $this->id = $conn->insert_id;
 
         $stmt = $conn->prepare("INSERT INTO books (product_id, weight) VALUES (?, ?)");
-        $stmt->bind_param("id", $this->id, $this->weight);
+        $id = $this->id;
+        $property = $this->getProperty();
+        $stmt->bind_param("id", $id, $property);
         $stmt->execute();
         $stmt->close();
     }

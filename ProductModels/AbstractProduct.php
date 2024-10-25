@@ -1,50 +1,56 @@
 <?php
-abstract class AbstractProduct extends Database {
+abstract class AbstractProduct extends Database
+{
     protected $id;
     protected $sku;
     protected $name;
     protected $price;
 
-    public function __construct($sku, $name, $price) {
+    public function __construct($sku, $name, $price)
+    {
         $this->setSku($sku);
         $this->setName($name);
         $this->setPrice($price);
     }
 
-    public function getId() {
+    public function getId()
+    {
         return $this->id;
     }
 
-    public function getSku() {
+    public function getSku()
+    {
         return $this->sku;
     }
 
-    public function getName() {
+    public function getName()
+    {
         return $this->name;
     }
 
-    public function getPrice() {
+    public function getPrice()
+    {
         return $this->price;
     }
 
-    public function setSku($sku) {
+    public function setSku($sku)
+    {
         $this->sku = $sku;
     }
 
-    public function setName($name) {
+    public function setName($name)
+    {
         $this->name = $name;
     }
 
-    public function setPrice($price) {
+    public function setPrice($price)
+    {
         $this->price = $price;
     }
 
-    abstract public function save();
+    abstract public function getProperty();
 
-    public function setProperty($propertyName, $value) {
-        $setterMethod = 'set' . ucfirst($propertyName);
-        if (method_exists($this, $setterMethod)) {
-            $this->$setterMethod($value);
-        }
-    }
+    abstract public function setProperty($value);
+
+    abstract public function save();
 }

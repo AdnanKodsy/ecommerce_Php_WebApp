@@ -1,21 +1,25 @@
 <?php
 
 require 'ProductModels\AbstractProduct.php';
-class DVD extends AbstractProduct {
+class DVD extends AbstractProduct
+{
     private $size;
 
-    public function __construct() {
+    public function __construct()
+    {
     }
 
-    public function getSize() {
+    public function getProperty()
+    {
         return $this->size;
     }
-
-    public function setSize($size) {
+    public function setProperty($size)
+    {
         $this->size = $size;
     }
 
-    public function save() {
+    public function save()
+    {
         $conn = self::getConnection();
         $stmt = $conn->prepare("INSERT INTO products (sku, `name`, price, product_type) VALUES (?, ?, ?, 'DVD')");
         $sku = $this->getSku();
@@ -26,7 +30,9 @@ class DVD extends AbstractProduct {
         $this->id = $conn->insert_id;
 
         $stmt = $conn->prepare("INSERT INTO dvds (product_id, size) VALUES (?, ?)");
-        $stmt->bind_param("id", $this->id, $this->size);
+        $id = $this->id;
+        $property = $this->getProperty();
+        $stmt->bind_param("id", $id, $property);
         $stmt->execute();
         $stmt->close();
     }

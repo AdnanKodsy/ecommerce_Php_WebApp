@@ -1,28 +1,37 @@
 <?php
 
-class ProductManager extends Database {
-    public function __construct() {
+class ProductManager extends Database
+{
+    public function __construct()
+    {
     }
     private $productClassMap = [
         'DVD' => DVD::class,
         'Book' => Book::class,
         'Furniture' => Furniture::class,
     ];
+    private $propertyColumns = [
+        'DVD' => 'size',
+        'Book' => 'weight',
+        'Furniture' => 'dimensions',
+    ];
 
-    private function skuExists($sku) {
+    private function skuExists($sku)
+    {
         $query = "SELECT COUNT(*) AS count FROM products WHERE sku = ?";
-        $conn = self::getConnection(); // Assuming you have a method to get DB connection
+        $conn = self::getConnection();
         $stmt = $conn->prepare($query);
         $stmt->bind_param("s", $sku);
         $stmt->execute();
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();
         $stmt->close();
-        
-        return $row['count'] > 0; 
+
+        return $row['count'] > 0;
     }
 
-    public function createAndSaveProduct($jsonData) {
+    public function createAndSaveProduct($jsonData)
+    {
         $data = json_decode($jsonData, true);
 
         if (!isset($data['product_type']) || !array_key_exists($data['product_type'], $this->productClassMap)) {
@@ -32,94 +41,71 @@ class ProductManager extends Database {
             return ["message" => "SKU already exists."];
         }
 
-        $productClass = $this->productClassMap[$data['product_type']];
-        $product = new $productClass();
+        $productType = $data['product_type'];
+        $product = new $productType();
         $this->setCommonProperties($product, $data);
-        
+        $rowName = $this->propertyColumns[$productType];
 
-        foreach ($data as $key => $value) {
-            if (in_array($key, ['sku', 'name', 'price', 'product_type'])) {
-                continue;
-            }
-            $product->setProperty($key, $value);
-        }
+        $product->setProperty($data[$rowName]);
+
         $product->save();
-        
+
         return ["message" => "Product saved successfully."];
     }
 
-    private function setCommonProperties($product, $data) {
+    private function setCommonProperties($product, $data)
+    {
         $product->setSku($data['sku']);
         $product->setName($data['name']);
         $product->setPrice($data['price']);
     }
-    
-   
-    public function displayAll() {
+
+
+    public function displayAll()
+    {
         $query = "
             SELECT p.id, p.sku, p.name, p.price, p.product_type,
-                d.size AS dvd_size, b.weight AS book_weight, f.dimensions AS furniture_dimensions
+                d.size AS size, b.weight AS weight, f.dimensions AS dimensions
             FROM products p
             LEFT JOIN dvds d ON p.id = d.product_id
             LEFT JOIN books b ON p.id = b.product_id
             LEFT JOIN furniture f ON p.id = f.product_id
             ORDER BY p.id ASC;
         ";
-    
+
         $result = $this->query($query);
         $products = [];
-    
 
-        $propertySetters = [
-            'DVD' => 'setSize',
-            'Book' => 'setWeight',
-            'Furniture' => 'setDimensions',
-        ];
-    
-        $propertyColumns = [
-            'DVD' => 'dvd_size',
-            'Book' => 'book_weight',
-            'Furniture' => 'furniture_dimensions',
-        ];
-    
-        $propertyGetters = [
-            'DVD' => 'getSize',
-            'Book' => 'getWeight',
-            'Furniture' => 'getDimensions',
-        ];
-    
+
         while ($row = $result->fetch_assoc()) {
             $productType = $row['product_type'];
-    
-            if (array_key_exists($productType, $this->productClassMap)) {
-                $productClass = $this->productClassMap[$productType];
-                $product = new $productClass();
- 
-                $product->setSku($row['sku']);
-                $product->setName($row['name']);
-                $product->setPrice($row['price']);
-    
-                $setterMethod = $propertySetters[$productType];
-                $columnName = $propertyColumns[$productType];
-                $product->$setterMethod($row[$columnName]);
-    
-                $products[] = [
-                    'ID' => $row['id'],
-                    'SKU' => $product->getSku(),
-                    'Name' => $product->getName(),
-                    'Price' => "$" . number_format($product->getPrice(), 2),
-                    'Type' => $productType,
-                    $columnName => $product->{$propertyGetters[$productType]}(),
-                ];
-            }
+
+            $product = new $productType();
+
+            $this->setCommonProperties($product, $row);
+
+            $columnName = $this->propertyColumns[$productType];
+
+            $product->setProperty($row[$columnName]);
+
+            $products[] = [
+                'ID' => $row['id'],
+                'SKU' => $product->getSku(),
+                'Name' => $product->getName(),
+                'Price' => "$" . number_format($product->getPrice(), 2),
+                'Type' => $productType,
+                $columnName => $product->getProperty(),
+            ];
+
         }
         return $products;
     }
-    
-    
-    
 
-    public function deleteProductsByIds($ids) {
+
+
+
+    public function deleteProductsByIds($ids)
+    {
         if (empty($ids)) {
             echo "No IDs provided for deletion.<br>";
             return;
