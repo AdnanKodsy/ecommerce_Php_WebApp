@@ -5,11 +5,6 @@ class ProductManager extends Database
     public function __construct()
     {
     }
-    private $productClassMap = [
-        'DVD' => DVD::class,
-        'Book' => Book::class,
-        'Furniture' => Furniture::class,
-    ];
     private $propertyColumns = [
         'DVD' => 'size',
         'Book' => 'weight',
@@ -34,9 +29,6 @@ class ProductManager extends Database
     {
         $data = json_decode($jsonData, true);
 
-        if (!isset($data['product_type']) || !array_key_exists($data['product_type'], $this->productClassMap)) {
-            return ["message" => "Invalid product type."];
-        }
         if ($this->skuExists($data['sku'])) {
             return ["message" => "SKU already exists."];
         }
