@@ -53,4 +53,5 @@ abstract class AbstractProduct extends Database
     abstract public function setProperty($value);
 
     abstract public function save();
+    abstract public function fetchById($id);
 }

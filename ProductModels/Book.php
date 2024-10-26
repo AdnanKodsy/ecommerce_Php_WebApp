@@ -38,5 +38,31 @@ class Book extends AbstractProduct
         $stmt->execute();
         $stmt->close();
     }
+
+    public function fetchById($id)
+    {
+        $conn = self::getConnection();
+        
+        $stmt = $conn->prepare("SELECT products.id, products.sku, products.name, products.price, books.weight 
+                                FROM products 
+                                JOIN books ON products.id = books.product_id 
+                                WHERE products.id = ?");
+        
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        
+        $result = $stmt->get_result();
+        $data = $result->fetch_assoc();
+        
+        if ($data) {
+            $this->setSku($data['sku']);
+            $this->setName($data['name']);
+            $this->setPrice($data['price']);
+            $this->setProperty($data['weight']);
+        }
+
+        $stmt->close();
+        return $data;
+    }
 }
 

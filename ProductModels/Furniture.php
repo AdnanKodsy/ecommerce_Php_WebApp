@@ -36,4 +36,31 @@ class Furniture extends AbstractProduct
         $stmt->execute();
         $stmt->close();
     }
+
+
+    public function fetchById($id)
+    {
+        $conn = self::getConnection();
+        
+        $stmt = $conn->prepare("SELECT products.id, products.sku, products.name, products.price, furniture.dimensions 
+                                FROM products 
+                                JOIN furniture ON products.id = furniture.product_id 
+                                WHERE products.id = ?");
+        
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        
+        $result = $stmt->get_result();
+        $data = $result->fetch_assoc();
+        
+        if ($data) {
+            $this->setSku($data['sku']);
+            $this->setName($data['name']);
+            $this->setPrice($data['price']);
+            $this->setProperty($data['dimensions']);
+        }
+
+        $stmt->close();
+        return $data;
+    }
 }

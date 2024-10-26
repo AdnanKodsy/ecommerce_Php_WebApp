@@ -54,44 +54,32 @@ class ProductManager extends Database
 
 
     public function displayAll()
-    {
-        $query = "
-            SELECT p.id, p.sku, p.name, p.price, p.product_type,
-                d.size AS size, b.weight AS weight, f.dimensions AS dimensions
-            FROM products p
-            LEFT JOIN dvds d ON p.id = d.product_id
-            LEFT JOIN books b ON p.id = b.product_id
-            LEFT JOIN furniture f ON p.id = f.product_id
-            ORDER BY p.id ASC;
-        ";
+{
+    $query = "SELECT id, product_type FROM products ORDER BY id ASC;";
+    $result = $this->query($query);
+    
+    $products = [];
+    
+    while ($row = $result->fetch_assoc()) {
+        $productId = $row['id'];
+        $productType = $row['product_type'];
 
-        $result = $this->query($query);
-        $products = [];
+        $product = new $productType();
 
+        $productData = $product->fetchById($productId);
 
-        while ($row = $result->fetch_assoc()) {
-            $productType = $row['product_type'];
-
-            $product = new $productType();
-
-            $this->setCommonProperties($product, $row);
-
-            $columnName = $this->propertyColumns[$productType];
-
-            $product->setProperty($row[$columnName]);
-
-            $products[] = [
-                'ID' => $row['id'],
-                'SKU' => $product->getSku(),
-                'Name' => $product->getName(),
-                'Price' => "$" . number_format($product->getPrice(), 2),
-                'Type' => $productType,
-                $columnName => $product->getProperty(),
-            ];
-
-        }
-        return $products;
+        $products[] = [
+            'ID' => $productData['id'],
+            'SKU' => $product->getSku(),
+            'Name' => $product->getName(),
+            'Price' => "$" . number_format($product->getPrice(), 2),
+            'Type' => $productType,
+            $this->propertyColumns[$productType] => $product->getProperty(),
+        ];
     }
+
+    return $products;
+}
 
 
 
