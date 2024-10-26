@@ -1,5 +1,8 @@
 <?php
-
+namespace SCANDIWEB\ProductModels;
+use SCANDIWEB\Database\Database;
+use ReflectionClass;
+use ReflectionMethod;
 class ProductManager extends Database
 {
     public function __construct()
@@ -27,9 +30,10 @@ class ProductManager extends Database
         if ($this->skuExists($data['sku'])) {
             return ["message" => "SKU already exists."];
         }
-
+        
         $productType = $data['product_type'];
-        $product = new $productType($data);
+        $productClass = "SCANDIWEB\\ProductModels\\$productType";
+        $product = new $productClass($data);
         $product->save();
 
         return ["message" => "Product saved successfully."];
@@ -47,14 +51,14 @@ class ProductManager extends Database
         while ($row = $result->fetch_assoc()) {
             $productId = $row['id'];
             $productType = $row['product_type'];
-    
-            $reflectionClass = new ReflectionClass($productType);
+            $productClass = "SCANDIWEB\\ProductModels\\$productType";
+            $reflectionClass = new ReflectionClass($productClass);
             $productInstance = $reflectionClass->newInstanceWithoutConstructor();
-            $productMethod = new ReflectionMethod($productType, 'fetchById');
+            $productMethod = new ReflectionMethod($productClass, 'fetchById');
             $fetchedData = $productMethod->invoke($productInstance, $productId);
 
             if ($fetchedData) {
-                $propertyName = $productType::propertyName;
+                $propertyName = $productClass::propertyName;
                 $products[] = [
                     'ID' => $fetchedData['id'],
                     'SKU' => $productInstance->getSku(),

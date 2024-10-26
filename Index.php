@@ -1,10 +1,8 @@
 <?php
-require_once 'Database\Database.php';
-require_once 'ProductModels\DVD.php';
-require_once 'ProductModels\Book.php';
-require_once 'ProductModels\Furniture.php';
-require_once 'ProductModels\productManager.php';
-require_once 'Controllers\ProductController.php';
+namespace SCANDIWEB;
+use SCANDIWEB\Controllers\ProductController;
+use SCANDIWEB\Database\Database;
+require_once 'vendor/autoload.php';
 
 
 Database::init('localhost', 'root', '', 'productsys');

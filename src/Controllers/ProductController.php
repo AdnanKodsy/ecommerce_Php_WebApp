@@ -1,5 +1,7 @@
 <?php
-require_once 'ProductModels\ProductManager.php';
+namespace SCANDIWEB\Controllers;
+use SCANDIWEB\ProductModels\ProductManager;
+use Exception;
 
 class ProductController {
     private $productManager;

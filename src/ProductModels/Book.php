@@ -1,5 +1,5 @@
 <?php
-require_once 'ProductModels\AbstractProduct.php';
+namespace SCANDIWEB\ProductModels;
 class Book extends AbstractProduct
 {
     private $weight;

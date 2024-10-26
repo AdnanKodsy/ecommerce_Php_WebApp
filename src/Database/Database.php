@@ -1,4 +1,6 @@
 <?php
+namespace SCANDIWEB\Database;
+use mysqli;
 class Database {
     private static $conn;
 

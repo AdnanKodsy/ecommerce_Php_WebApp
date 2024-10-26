@@ -1,33 +1,33 @@
 <?php
-
-require 'ProductModels\AbstractProduct.php';
-class DVD extends AbstractProduct
+namespace SCANDIWEB\ProductModels;
+class Furniture extends AbstractProduct
 {
-    private $size;
-    public const propertyName = "size";
+    private $dimensions;
+    public const propertyName = 'dimensions';
 
     public function __construct(array $productInfo)
     {
         parent::__construct($productInfo);
 
         if (isset($productInfo['size'])) {
-            $this->setSize($productInfo['size']);
+            $this->setDimensions($productInfo['size']);
         }
     }
 
-    public function getSize()
+    public function getDimensions()
     {
-        return $this->size;
+        return $this->dimensions;
     }
-    public function setSize($size)
+    public function setDimensions($dimensions)
     {
-        $this->size = $size;
+
+        $this->dimensions = $dimensions;
     }
 
     public function save()
     {
         $conn = self::getConnection();
-        $stmt = $conn->prepare("INSERT INTO products (sku, `name`, price, product_type) VALUES (?, ?, ?, 'DVD')");
+        $stmt = $conn->prepare("INSERT INTO products (sku, `name`, price, product_type) VALUES (?, ?, ?, 'Furniture')");
         $sku = $this->getSku();
         $name = $this->getName();
         $price = $this->getPrice();
@@ -35,21 +35,22 @@ class DVD extends AbstractProduct
         $stmt->execute();
         $this->id = $conn->insert_id;
 
-        $stmt = $conn->prepare("INSERT INTO dvds (product_id, size) VALUES (?, ?)");
+        $stmt = $conn->prepare("INSERT INTO furniture (product_id, dimensions) VALUES (?, ?)");
         $id = $this->id;
-        $property = $this->getSize();
-        $stmt->bind_param("id", $id, $property);
+        $property = $this->getDimensions();
+        $stmt->bind_param("is", $id, $property);
         $stmt->execute();
         $stmt->close();
     }
+
 
     public function fetchById($id)
     {
         $conn = self::getConnection();
         
-        $stmt = $conn->prepare("SELECT products.id, products.sku, products.name, products.price, dvds.size 
+        $stmt = $conn->prepare("SELECT products.id, products.sku, products.name, products.price, furniture.dimensions 
                                 FROM products 
-                                JOIN dvds ON products.id = dvds.product_id 
+                                JOIN furniture ON products.id = furniture.product_id 
                                 WHERE products.id = ?");
         
         $stmt->bind_param("i", $id);
@@ -62,11 +63,10 @@ class DVD extends AbstractProduct
             $this->setSku($data['sku']);
             $this->setName($data['name']);
             $this->setPrice($data['price']);
-            $this->setSize($data['size']);
+            $this->setDimensions($data['dimensions']);
         }
 
         $stmt->close();
         return $data;
     }
 }
-

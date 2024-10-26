@@ -1,4 +1,6 @@
 <?php
+namespace SCANDIWEB\ProductModels;
+use SCANDIWEB\Database\DataBase;
 abstract class AbstractProduct extends Database
 {
     protected $id;
