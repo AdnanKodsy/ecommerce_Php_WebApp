@@ -5,11 +5,6 @@ class ProductManager extends Database
     public function __construct()
     {
     }
-    private $propertyColumns = [
-        'DVD' => 'size',
-        'Book' => 'weight',
-        'Furniture' => 'dimensions',
-    ];
 
     private function skuExists($sku)
     {
@@ -34,52 +29,46 @@ class ProductManager extends Database
         }
 
         $productType = $data['product_type'];
-        $product = new $productType();
-        $this->setCommonProperties($product, $data);
-        $rowName = $this->propertyColumns[$productType];
-
-        $product->setProperty($data[$rowName]);
-
+        $product = new $productType($data);
         $product->save();
 
         return ["message" => "Product saved successfully."];
     }
 
-    private function setCommonProperties($product, $data)
-    {
-        $product->setSku($data['sku']);
-        $product->setName($data['name']);
-        $product->setPrice($data['price']);
-    }
 
 
     public function displayAll()
-{
-    $query = "SELECT id, product_type FROM products ORDER BY id ASC;";
-    $result = $this->query($query);
+    {
+        $query = "SELECT id, product_type FROM products ORDER BY id ASC;";
+        $result = $this->query($query);
+        
+        $products = [];
+        
+        while ($row = $result->fetch_assoc()) {
+            $productId = $row['id'];
+            $productType = $row['product_type'];
     
-    $products = [];
+            $reflectionClass = new ReflectionClass($productType);
+            $productInstance = $reflectionClass->newInstanceWithoutConstructor();
+            $productMethod = new ReflectionMethod($productType, 'fetchById');
+            $fetchedData = $productMethod->invoke($productInstance, $productId);
+
+            if ($fetchedData) {
+                $propertyName = $productType::propertyName;
+                $products[] = [
+                    'ID' => $fetchedData['id'],
+                    'SKU' => $productInstance->getSku(),
+                    'Name' => $productInstance->getName(),
+                    'Price' => "$" . number_format($productInstance->getPrice(), 2),
+                    'Type' => $productType,
+                    $propertyName => $productInstance->{"get" . ucfirst($propertyName)}(),
+                ];
+            }
+        }
     
-    while ($row = $result->fetch_assoc()) {
-        $productId = $row['id'];
-        $productType = $row['product_type'];
-
-        $product = new $productType();
-
-        $productData = $product->fetchById($productId);
-
-        $products[] = [
-            'ID' => $productData['id'],
-            'SKU' => $product->getSku(),
-            'Name' => $product->getName(),
-            'Price' => "$" . number_format($product->getPrice(), 2),
-            'Type' => $productType,
-            $this->propertyColumns[$productType] => $product->getProperty(),
-        ];
+        return $products;
     }
-
-    return $products;
-}
+    
 
 
 

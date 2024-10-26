@@ -4,16 +4,21 @@ class Book extends AbstractProduct
 {
     private $weight;
 
-    public function __construct()
+    public const propertyName = "weight";
+    public function __construct(array $productInfo)
     {
+        parent::__construct($productInfo);
+        if (isset($productInfo['weight'])) {
+            $this->setWeight($productInfo['weight']);
+        }
     }
 
 
-    public function getProperty()
+    public function getWeight()
     {
         return $this->weight;
     }
-    public function setProperty($weight)
+    public function setWeight($weight)
     {
 
         $this->weight = $weight;
@@ -33,7 +38,7 @@ class Book extends AbstractProduct
 
         $stmt = $conn->prepare("INSERT INTO books (product_id, weight) VALUES (?, ?)");
         $id = $this->id;
-        $property = $this->getProperty();
+        $property = $this->getWeight();
         $stmt->bind_param("id", $id, $property);
         $stmt->execute();
         $stmt->close();
@@ -58,7 +63,7 @@ class Book extends AbstractProduct
             $this->setSku($data['sku']);
             $this->setName($data['name']);
             $this->setPrice($data['price']);
-            $this->setProperty($data['weight']);
+            $this->setWeight($data['weight']);
         }
 
         $stmt->close();

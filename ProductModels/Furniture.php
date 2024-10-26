@@ -3,16 +3,22 @@ require_once 'ProductModels\AbstractProduct.php';
 class Furniture extends AbstractProduct
 {
     private $dimensions;
+    public const propertyName = 'dimensions';
 
-    public function __construct()
+    public function __construct(array $productInfo)
     {
+        parent::__construct($productInfo);
+
+        if (isset($productInfo['size'])) {
+            $this->setDimensions($productInfo['size']);
+        }
     }
 
-    public function getProperty()
+    public function getDimensions()
     {
         return $this->dimensions;
     }
-    public function setProperty($dimensions)
+    public function setDimensions($dimensions)
     {
 
         $this->dimensions = $dimensions;
@@ -31,7 +37,7 @@ class Furniture extends AbstractProduct
 
         $stmt = $conn->prepare("INSERT INTO furniture (product_id, dimensions) VALUES (?, ?)");
         $id = $this->id;
-        $property = $this->getProperty();
+        $property = $this->getDimensions();
         $stmt->bind_param("is", $id, $property);
         $stmt->execute();
         $stmt->close();
@@ -57,7 +63,7 @@ class Furniture extends AbstractProduct
             $this->setSku($data['sku']);
             $this->setName($data['name']);
             $this->setPrice($data['price']);
-            $this->setProperty($data['dimensions']);
+            $this->setDimensions($data['dimensions']);
         }
 
         $stmt->close();

@@ -4,16 +4,22 @@ require 'ProductModels\AbstractProduct.php';
 class DVD extends AbstractProduct
 {
     private $size;
+    public const propertyName = "size";
 
-    public function __construct()
+    public function __construct(array $productInfo)
     {
+        parent::__construct($productInfo);
+
+        if (isset($productInfo['size'])) {
+            $this->setSize($productInfo['size']);
+        }
     }
 
-    public function getProperty()
+    public function getSize()
     {
         return $this->size;
     }
-    public function setProperty($size)
+    public function setSize($size)
     {
         $this->size = $size;
     }
@@ -31,7 +37,7 @@ class DVD extends AbstractProduct
 
         $stmt = $conn->prepare("INSERT INTO dvds (product_id, size) VALUES (?, ?)");
         $id = $this->id;
-        $property = $this->getProperty();
+        $property = $this->getSize();
         $stmt->bind_param("id", $id, $property);
         $stmt->execute();
         $stmt->close();
@@ -56,7 +62,7 @@ class DVD extends AbstractProduct
             $this->setSku($data['sku']);
             $this->setName($data['name']);
             $this->setPrice($data['price']);
-            $this->setProperty($data['size']);
+            $this->setSize($data['size']);
         }
 
         $stmt->close();
