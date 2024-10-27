@@ -1,8 +1,6 @@
 <?php
 namespace SCANDIWEB\ProductModels;
 use SCANDIWEB\Database\Database;
-use ReflectionClass;
-use ReflectionMethod;
 class ProductManager extends Database
 {
     public function __construct()
@@ -87,11 +85,6 @@ class ProductManager extends Database
         
         return $products;
     }
-    
-    
-
-
-
 
     public function deleteProductsByIds($ids)
     {
