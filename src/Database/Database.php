@@ -1,17 +1,10 @@
 <?php
 namespace SCANDIWEB\Database;
-use mysqli;
 class Database {
     private static $conn;
 
-    public static function init($host, $user, $password, $dbname) {
-        if (self::$conn === null) {
-            self::$conn = new mysqli($host, $user, $password, $dbname);
-
-            if (self::$conn->connect_error) {
-                die("Connection failed: " . self::$conn->connect_error);
-            }
-        }
+    public static function init($mysqli) {
+        self::$conn = $mysqli;
     }
 
     public static function getConnection() {
