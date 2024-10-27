@@ -9,8 +9,8 @@ class Furniture extends AbstractProduct
     {
         parent::__construct($productInfo);
 
-        if (isset($productInfo['size'])) {
-            $this->setDimensions($productInfo['size']);
+        if (isset($productInfo['dimensions'])) {
+            $this->setDimensions($productInfo['dimensions']);
         }
     }
 
@@ -44,29 +44,34 @@ class Furniture extends AbstractProduct
     }
 
 
-    public function fetchById($id)
+    public static function fetchAll()
     {
         $conn = self::getConnection();
-        
+
         $stmt = $conn->prepare("SELECT products.id, products.sku, products.name, products.price, furniture.dimensions 
                                 FROM products 
                                 JOIN furniture ON products.id = furniture.product_id 
-                                WHERE products.id = ?");
-        
-        $stmt->bind_param("i", $id);
+                                WHERE products.product_type = 'Furniture'");
+
         $stmt->execute();
-        
+
         $result = $stmt->get_result();
-        $data = $result->fetch_assoc();
-        
-        if ($data) {
-            $this->setSku($data['sku']);
-            $this->setName($data['name']);
-            $this->setPrice($data['price']);
-            $this->setDimensions($data['dimensions']);
+        $products = [];
+
+        while ($data = $result->fetch_assoc()) {
+            $productInfo = [
+                'id' => $data['id'],
+                'sku' => $data['sku'],
+                'name' => $data['name'],
+                'price' => $data['price'],
+                'dimensions' => $data['dimensions']
+            ];
+
+            $furniture = new self($productInfo);
+            $products[] = $furniture;
         }
 
         $stmt->close();
-        return $data;
+        return $products;
     }
 }

@@ -22,6 +22,19 @@ class ProductManager extends Database
 
         return $row['count'] > 0;
     }
+    private function getFullClassName($className){
+        $prefix = "SCANDIWEB\\ProductModels\\";
+        $fullClassName = $prefix . $className;
+        return $fullClassName;
+    }
+    private function getInstance($className ,$data){
+       $instance = $this->getFullClassName($className);   
+       if (!class_exists($instance)) {
+        return ["message" => "Class does not exist"];
+       }
+       return new $instance($data);
+
+    }
 
     public function createAndSaveProduct($jsonData)
     {
@@ -30,10 +43,9 @@ class ProductManager extends Database
         if ($this->skuExists($data['sku'])) {
             return ["message" => "SKU already exists."];
         }
-        
+
         $productType = $data['product_type'];
-        $productClass = "SCANDIWEB\\ProductModels\\$productType";
-        $product = new $productClass($data);
+        $product = $this->getInstance($productType, $data);
         $product->save();
 
         return ["message" => "Product saved successfully."];
@@ -43,35 +55,39 @@ class ProductManager extends Database
 
     public function displayAll()
     {
-        $query = "SELECT id, product_type FROM products ORDER BY id ASC;";
+        $products = [];
+        $query = "SELECT DISTINCT product_type FROM products;";
         $result = $this->query($query);
         
-        $products = [];
-        
         while ($row = $result->fetch_assoc()) {
-            $productId = $row['id'];
             $productType = $row['product_type'];
-            $productClass = "SCANDIWEB\\ProductModels\\$productType";
-            $reflectionClass = new ReflectionClass($productClass);
-            $productInstance = $reflectionClass->newInstanceWithoutConstructor();
-            $productMethod = new ReflectionMethod($productClass, 'fetchById');
-            $fetchedData = $productMethod->invoke($productInstance, $productId);
-
-            if ($fetchedData) {
-                $propertyName = $productClass::propertyName;
-                $products[] = [
-                    'ID' => $fetchedData['id'],
-                    'SKU' => $productInstance->getSku(),
-                    'Name' => $productInstance->getName(),
-                    'Price' => "$" . number_format($productInstance->getPrice(), 2),
-                    'Type' => $productType,
-                    $propertyName => $productInstance->{"get" . ucfirst($propertyName)}(),
-                ];
+            
+            $productClass = $this->getFullClassName($productType);
+            
+            if (class_exists($productClass) && method_exists($productClass, 'fetchAll')) {
+                $allProducts = $productClass::fetchAll();
+                
+                foreach ($allProducts as $productInstance) {
+                    $propertyName = $productClass::propertyName;
+    
+                    $products[] = [
+                        'ID' => $productInstance->getId(),
+                        'SKU' => $productInstance->getSku(),
+                        'Name' => $productInstance->getName(),
+                        'Price' => "$" . number_format($productInstance->getPrice(), 2),
+                        'Type' => $productType,
+                        $propertyName => $productInstance->{"get" . ucfirst($propertyName)}(),
+                    ];
+                }
             }
         }
-    
+        usort($products, function($a, $b) {
+            return $a['ID'] <=> $b['ID'];
+        });
+        
         return $products;
     }
+    
     
 
 

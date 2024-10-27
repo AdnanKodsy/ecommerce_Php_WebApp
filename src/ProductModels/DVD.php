@@ -43,30 +43,37 @@ class DVD extends AbstractProduct
         $stmt->close();
     }
 
-    public function fetchById($id)
+    public static function fetchAll()
     {
         $conn = self::getConnection();
         
         $stmt = $conn->prepare("SELECT products.id, products.sku, products.name, products.price, dvds.size 
                                 FROM products 
                                 JOIN dvds ON products.id = dvds.product_id 
-                                WHERE products.id = ?");
+                                WHERE products.product_type = 'DVD'");
         
-        $stmt->bind_param("i", $id);
         $stmt->execute();
         
         $result = $stmt->get_result();
-        $data = $result->fetch_assoc();
+        $products = [];
         
-        if ($data) {
-            $this->setSku($data['sku']);
-            $this->setName($data['name']);
-            $this->setPrice($data['price']);
-            $this->setSize($data['size']);
+        while ($data = $result->fetch_assoc()) {
+            $productInfo = [
+                'id' => $data['id'],
+                'sku' => $data['sku'],
+                'name' => $data['name'],
+                'price' => $data['price'],
+                'size' => $data['size']
+            ];
+    
+            $dvd = new self($productInfo);
+            $products[] = $dvd;
         }
-
+    
         $stmt->close();
-        return $data;
+        return $products;
     }
+    
+
 }
 

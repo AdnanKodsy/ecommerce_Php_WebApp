@@ -10,6 +10,9 @@ abstract class AbstractProduct extends Database
 
     public function __construct(array $productInfo)
     {
+        if (isset($productInfo['id'])) {
+            $this->setId($productInfo['id']);
+        }
         if (isset($productInfo['sku'])) {
             $this->setSku($productInfo['sku']);
         }
@@ -40,7 +43,10 @@ abstract class AbstractProduct extends Database
     {
         return $this->price;
     }
-
+    public function setId($id)
+    {
+        $this->id = $id;
+    }
     public function setSku($sku)
     {
         $this->sku = $sku;
@@ -57,5 +63,5 @@ abstract class AbstractProduct extends Database
     }
 
     abstract public function save();
-    abstract public function fetchById($id);
+    abstract public static function fetchAll();
 }
